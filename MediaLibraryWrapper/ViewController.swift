@@ -19,7 +19,7 @@ class ViewController: UIViewController {
     }
     
     @IBAction func chooseImageOrVideoButtonDidTap(_ sender: Any) {
-        mediaPicker.showAlertChooseMediaType([.images, .videos]) { [weak self] media in
+        mediaPicker.showAlertChooseMediaType([.images]) { [weak self] media in
             print("Get media: \(media)")
         }
     }

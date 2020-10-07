@@ -24,6 +24,11 @@ class GIMediaCommonPicker {
     
     init(parentVC: UIViewController) {
         self.parentVC = parentVC
+        
+//        pickerAuthorizationCenter.noAccessAlertsStrings =
+//            .init(noPhotoLibraryAccess: .init(title: "", message: ""), noCameraAccess: .init(title: "", message: ""),
+//                  settingsCaption: "",
+//                  cancelCaption: "")
     }
     
     

@@ -8,12 +8,37 @@
 import UIKit
 import Photos
 
+extension ImagePickerAuthorizationCenter {
+    
+    struct NoAccessAlertsStrings {
+        var noPhotoLibraryAccess = AlertSrtings()
+        var noCameraAccess = AlertSrtings()
+        
+        var settingsCaption = "Settings"
+        var cancelCaption = "Cancel"
+        
+        
+        static let defaultStrings = NoAccessAlertsStrings(
+            noPhotoLibraryAccess: .init(title: "NoPhotoLibraryAccess", message: "PleaseGivePhotoLibraryAccessInSettings"),
+            noCameraAccess: .init(title: "NoCameraAccess", message: "PleaseGiveCameraAccessInSettings"))
+    }
+    
+    struct AlertSrtings {
+        var title = ""
+        var message = ""
+    }
+    
+}
+
+/// Класс для проверки доступа к **Галереи** и **Камере**.
 class ImagePickerAuthorizationCenter {
     private unowned let presentingViewController: UIViewController
     
     
     // MARK: - Init
     
+    /// Инициализация класса.
+    /// - Parameter presentingViewController: vc с которого будут показаны алерты о запрете доступа.
     init(presentingViewController: UIViewController) {
         self.presentingViewController = presentingViewController
     }
@@ -21,6 +46,13 @@ class ImagePickerAuthorizationCenter {
     
     // MARK: - API
     
+    var noAccessAlertsStrings: NoAccessAlertsStrings = .defaultStrings
+    
+    
+    /// Проверить доступ к Галерее.
+    /// - Parameter completion: Вернет `true` если доступ `authorized`. Вернет `false` в любом другом случае.
+    /// Если нет доступа к галерее покажет соответствующий **alert**.
+    /// Если дан только `.limited` доступ - покажет `presentLimitedLibraryPicker`.
     func checkPhotoLibraryAccess(completion: ((_ isGranted: Bool) -> ())?) {
         let status: PHAuthorizationStatus = {
             if #available(iOS 14, *) {
@@ -39,8 +71,8 @@ class ImagePickerAuthorizationCenter {
             
         case .denied, .restricted :
             DispatchQueue.main.async {
-                self.alertImageAuthenticationError(title: "NoPhotoLibraryAccess",
-                                                   message: "PleaseGivePhotoLibraryAccessInSettings")
+                self.alertImageAuthenticationError(title: self.noAccessAlertsStrings.noPhotoLibraryAccess.title,
+                                                   message: self.noAccessAlertsStrings.noPhotoLibraryAccess.message)
                 completion?(false)
             }
             
@@ -59,7 +91,9 @@ class ImagePickerAuthorizationCenter {
         }
     }
     
-
+    /// Проверить доступ к Камере.
+    /// - Parameter completion: Вернет `true` если доступ `authorized`. Вернет `false` в любом другом случае.
+    ///  Если нет доступа к галерее покажет соответствующий **alert**.
     func checkCameraAccess(completion: @escaping (_ isGranted: Bool) -> ()) {
         let cameraMediaType = AVMediaType.video
         let cameraAuthorizationStatus = AVCaptureDevice.authorizationStatus(for: cameraMediaType)
@@ -73,8 +107,8 @@ class ImagePickerAuthorizationCenter {
             
         case .denied, .restricted:
             DispatchQueue.main.async {
-                self.alertImageAuthenticationError(title: "NoCameraAccess",
-                                                   message: "PleaseGiveCameraAccessInSettings")
+                self.alertImageAuthenticationError(title: self.noAccessAlertsStrings.noCameraAccess.title,
+                                                   message: self.noAccessAlertsStrings.noCameraAccess.message)
                 
                 completion(false)
             }
@@ -90,18 +124,7 @@ class ImagePickerAuthorizationCenter {
             completion(false)
         }
     }
-    
-    /// Работает, как в телеграме. Мы запрашиваем доступ к микрофону 1 раз, при любом статусе - вызывается complletion
-    func checkMicrophonePermision(completion: @escaping  () -> ()) {
-        AVAudioSession.sharedInstance().requestRecordPermission { _ in
-            DispatchQueue.main.async {
-                completion()
-            }
-        }
-    }
-    
-    
-    
+
 }
 
 private extension ImagePickerAuthorizationCenter {
@@ -109,14 +132,14 @@ private extension ImagePickerAuthorizationCenter {
     func alertImageAuthenticationError(title: String, message: String) {
         let ac = UIAlertController(title: title, message: message, preferredStyle: .alert)
         
-        let settingsAction = UIAlertAction(title: "Settings", style: .default) { (_) in
+        let settingsAction = UIAlertAction(title: noAccessAlertsStrings.settingsCaption, style: .default) { (_) in
             let settingsUrl = NSURL(string: UIApplication.openSettingsURLString)
             if let url = settingsUrl {
                 UIApplication.shared.open(url as URL)
             }
         }
         
-        let cancelAction = UIAlertAction(title: "Cancel", style: .default, handler: nil)
+        let cancelAction = UIAlertAction(title: noAccessAlertsStrings.cancelCaption, style: .cancel, handler: nil)
         
         ac.addAction(cancelAction)
         ac.addAction(settingsAction)
